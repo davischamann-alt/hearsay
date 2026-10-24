@@ -1,0 +1,18 @@
+[
+ {
+  "slug": "austin",
+  "name": "Austin, TX",
+  "center": [
+   30.2672,
+   -97.7431
+  ],
+  "radius_km": 25,
+  "updated": "2026-10-24",
+  "scanned": {
+   "press": 268,
+   "blog": 33,
+   "local": 1182
+  },
+  "spots": 555
+ }
+]

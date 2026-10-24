@@ -1,0 +1,38 @@
+name: Refresh word of mouth
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays, 09:00 UTC
+  workflow_dispatch:
+    inputs:
+      city:
+        description: "City slug to refresh (blank = all)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install a word list (helps tell names from ordinary words)
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends wamerican
+      - name: Collect
+        env:
+          CITY: ${{ inputs.city }}
+        run: python pipeline/collect.py ${CITY:+--city "$CITY"}
+      - name: Commit new data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh word of mouth"
+            git push
+          fi

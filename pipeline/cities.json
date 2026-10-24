@@ -1,0 +1,13 @@
+[
+  {
+    "slug": "austin",
+    "name": "Austin, TX",
+    "center": [30.2672, -97.7431],
+    "radius_km": 25,
+    "news_terms": "Austin",
+    "subreddits": ["austinfood"],
+    "feeds": [
+      "https://austin.eater.com/rss/index.xml"
+    ]
+  }
+]

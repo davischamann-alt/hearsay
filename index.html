@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hearsay · Where to eat, by word of mouth</title>
+  <meta name="description" content="Tell it what you're craving. Hearsay finds local spots people are actually talking about on Reddit, in food blogs and in the local paper. No ads, no paid placement.">
+  <meta name="theme-color" content="#f7f3ec" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15120f" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%23b4441c'/><text x='16' y='22.5' font-family='Georgia,serif' font-size='19' font-style='italic' text-anchor='middle' fill='%23f7f3ec'>h</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="top">
+    <a class="wordmark" href="./">Hearsay</a>
+    <span class="tagline">No ads. Just word of mouth.</span>
+  </header>
+
+  <main>
+    <form id="search" class="search" autocomplete="off">
+      <label for="craving" class="ask">What are you craving?</label>
+      <div class="craving-row">
+        <input id="craving" name="craving" type="text" placeholder="spicy noodles, a really good burger…" enterkeyhint="search">
+        <button type="submit" class="go">Find</button>
+      </div>
+
+      <div class="moods" id="moods" aria-label="Or pick a mood"></div>
+
+      <div class="where">
+        <span class="muted">near</span>
+        <div class="loc">
+          <input id="location" name="location" type="text" placeholder="city or neighborhood" aria-label="City or neighborhood">
+          <button type="button" id="locate" class="locate" title="Use my location" aria-label="Use my location">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="currentColor"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <span class="muted">within</span>
+        <select id="radius" name="radius" aria-label="Distance">
+          <option value="1">1 mi</option>
+          <option value="3" selected>3 mi</option>
+          <option value="8">8 mi</option>
+          <option value="15">15 mi</option>
+        </select>
+      </div>
+    </form>
+
+    <section id="status" class="status" aria-live="polite"></section>
+    <ol id="results" class="results"></ol>
+    <section id="quiet" class="quiet"></section>
+  </main>
+
+  <footer class="foot">
+    <details>
+      <summary>How Hearsay ranks places</summary>
+      <p>Nobody can pay to be here. Each spot is scored on three things:</p>
+      <ul>
+        <li><strong>Fit</strong>: does it match what you typed? We check its cuisine, its name, and what people said about it.</li>
+        <li><strong>Word of mouth</strong>: how many independent voices recommend it. Local threads on Reddit, food blogs and newspaper or magazine coverage all count. One outlet repeating itself counts less than three different ones, and recent talk counts more than old talk.</li>
+        <li><strong>Distance</strong>: a gentle nudge toward closer spots.</li>
+      </ul>
+      <p>Chains are left out. Delivery apps and ad-driven review sites (Yelp, Tripadvisor and the like) are never used as sources.</p>
+    </details>
+    <p class="credits">Places © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Quotes link back to their sources. <span id="coverage"></span></p>
+  </footer>
+
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
