@@ -95,9 +95,13 @@ def is_chain(name):
     return any(words[:len(c)] == c for c in CHAINS)
 
 
+# Everyday words some word lists miss ("roma tomatoes").
+EVERYDAY = {"roma"}
+
+
 def is_common(word):
     """An everyday word (or number) rather than something only a name would be."""
-    return (word in ENGLISH or word in GENERIC or word.isdigit()
+    return (word in ENGLISH or word in GENERIC or word in EVERYDAY or word.isdigit()
             or (word.endswith("s") and word[:-1] in ENGLISH))
 
 # Aggregators and delivery apps: the ad-driven stuff we're avoiding.
