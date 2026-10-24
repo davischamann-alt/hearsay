@@ -64,7 +64,7 @@ National chains live in `data/chains.json`, as normalized names: lowercase, no a
 
 ## Known limits (v0.1)
 
-- **Reddit may block GitHub's servers.** If the Action's log shows `403` for reddit.com, run the collector from your own machine and commit the data. The proper fix is a free Reddit API app whose keys live in repository secrets.
+- **Refreshes are slow.** Reddit works from GitHub Actions but paces anonymous requests tightly: a full Austin refresh takes about 2 hours there, versus about 40 minutes from a home connection. That fits the job's 3-hour limit for one city. More cities will need one job per city, or a free Reddit API app with its keys in repository secrets.
 - **Name matching is heuristic.** One-word names have to be capitalized and not a common word; generic names like "Thai Kitchen" are skipped rather than guessed.
 - **Google News links go through Google redirects**, and only headlines are read, not full articles.
 
