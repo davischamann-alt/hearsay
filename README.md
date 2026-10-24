@@ -42,11 +42,11 @@ Add an entry to `pipeline/cities.json`:
   "radius_km": 20,
   "news_terms": "Chicago",
   "subreddits": ["chicagofood"],
-  "feeds": ["https://chicago.eater.com/rss/index.xml"]
+  "feeds": [{"url": "https://chicago.eater.com/rss/index.xml", "name": "Eater Chicago"}]
 }
 ```
 
-Then collect it (takes a few minutes, since it's polite to every source):
+Then collect it. This takes about 40 minutes, since it waits out Reddit's rate limits:
 
 ```bash
 python3 pipeline/collect.py --city chicago
@@ -64,7 +64,7 @@ National chains live in `data/chains.json`, as normalized names: lowercase, no a
 
 ## Known limits (v0.1)
 
-- **Refreshes are slow.** Reddit works from GitHub Actions but paces anonymous requests tightly: a full Austin refresh takes about 2 hours there, versus about 40 minutes from a home connection. That fits the job's 3-hour limit for one city. More cities will need one job per city, or a free Reddit API app with its keys in repository secrets.
+- **Refreshes are slow.** Reddit works from GitHub Actions but paces anonymous requests tightly: a full Austin refresh takes about 2 hours there, versus about 40 minutes from a home connection. So the weekly Action runs one job per city, in parallel, and commits all of them together at the end. A free Reddit API app, with its keys in repository secrets, would make this much faster.
 - **Name matching is heuristic.** One-word names have to be capitalized and not a common word; generic names like "Thai Kitchen" are skipped rather than guessed.
 - **Google News links go through Google redirects**, and only headlines are read, not full articles.
 

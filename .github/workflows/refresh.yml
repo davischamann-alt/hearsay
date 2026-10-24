@@ -13,9 +13,32 @@ permissions:
   contents: write
 
 jobs:
+  # One job per city: a city takes about 2 hours on GitHub (Reddit paces
+  # anonymous requests), so cities can't share one 3-hour job.
+  cities:
+    runs-on: ubuntu-latest
+    outputs:
+      slugs: ${{ steps.pick.outputs.slugs }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pick
+        env:
+          CITY: ${{ inputs.city }}
+        run: |
+          if [ -n "$CITY" ]; then
+            echo "slugs=$(jq -nc --arg c "$CITY" '[$c]')" >> "$GITHUB_OUTPUT"
+          else
+            echo "slugs=$(jq -c '[.[].slug]' pipeline/cities.json)" >> "$GITHUB_OUTPUT"
+          fi
+
   collect:
+    needs: cities
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        city: ${{ fromJson(needs.cities.outputs.slugs) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -23,10 +46,29 @@ jobs:
           python-version: "3.12"
       - name: Install a word list (helps tell names from ordinary words)
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends wamerican
-      - name: Collect
+      - name: Collect ${{ matrix.city }}
         env:
-          CITY: ${{ inputs.city }}
-        run: python pipeline/collect.py ${CITY:+--city "$CITY"}
+          CITY: ${{ matrix.city }}
+        run: python pipeline/collect.py --city "$CITY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: city-${{ matrix.city }}
+          path: data/cities/${{ matrix.city }}.json
+
+  # Gather every city's file and commit once, so jobs never race on main.
+  commit:
+    needs: collect
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: city-*
+          path: data/cities
+          merge-multiple: true
+      - name: Rebuild the city index
+        run: python3 pipeline/collect.py --index-only
       - name: Commit new data
         run: |
           git config user.name "github-actions[bot]"

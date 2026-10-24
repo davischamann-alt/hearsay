@@ -2,12 +2,76 @@
   {
     "slug": "austin",
     "name": "Austin, TX",
-    "center": [30.2672, -97.7431],
+    "center": [
+      30.2672,
+      -97.7431
+    ],
     "radius_km": 25,
     "news_terms": "Austin",
-    "subreddits": ["austinfood"],
+    "subreddits": [
+      "austinfood"
+    ],
     "feeds": [
-      "https://austin.eater.com/rss/index.xml"
+      {
+        "url": "https://austin.eater.com/rss/index.xml",
+        "name": "Eater Austin"
+      }
+    ],
+    "place_words": [
+      "texas",
+      "round rock",
+      "cedar park",
+      "pflugerville",
+      "buda",
+      "kyle",
+      "lockhart",
+      "georgetown",
+      "san marcos",
+      "dripping springs",
+      "lakeway"
+    ]
+  },
+  {
+    "slug": "atlanta",
+    "name": "Atlanta, GA",
+    "center": [
+      33.749,
+      -84.388
+    ],
+    "radius_km": 25,
+    "news_terms": "Atlanta",
+    "subreddits": [
+      "atlantafood"
+    ],
+    "feeds": [
+      {
+        "url": "https://atlanta.eater.com/rss/index.xml",
+        "name": "Eater Atlanta"
+      },
+      {
+        "url": "https://whatnowatlanta.com/feed/",
+        "name": "What Now Atlanta"
+      }
+    ],
+    "place_words": [
+      "georgia",
+      "decatur",
+      "marietta",
+      "lawrenceville",
+      "buckhead",
+      "midtown",
+      "smyrna",
+      "alpharetta",
+      "roswell",
+      "duluth",
+      "chamblee",
+      "doraville",
+      "brookhaven",
+      "sandy springs",
+      "kennesaw",
+      "tucker",
+      "athens",
+      "savannah"
     ]
   }
 ]

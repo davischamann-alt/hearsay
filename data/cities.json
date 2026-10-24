@@ -14,5 +14,21 @@
    "local": 9578
   },
   "spots": 616
+ },
+ {
+  "slug": "atlanta",
+  "name": "Atlanta, GA",
+  "center": [
+   33.749,
+   -84.388
+  ],
+  "radius_km": 25,
+  "updated": "2026-10-24",
+  "scanned": {
+   "press": 1505,
+   "blog": 859,
+   "local": 1100
+  },
+  "spots": 313
  }
 ]

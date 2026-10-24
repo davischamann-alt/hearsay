@@ -15,6 +15,7 @@ Standard library only, so it runs anywhere (including GitHub Actions).
     python3 pipeline/collect.py --city austin   # one city
     python3 pipeline/collect.py --quick         # fewer queries, for testing
     python3 pipeline/collect.py --rematch       # re-match last crawl's text, no crawling
+    python3 pipeline/collect.py --index-only    # just rebuild data/cities.json
 """
 
 import argparse
@@ -76,6 +77,7 @@ spicy fresh local central city town street avenue east west north south
 austin texas mama papa abuela casa la el los las de del y
 olive salt pepper honey sugar butter lemon lime oak elm pearl
 asian chinatown pad speakeasy back champion champions cuisine
+soul fusion taqueria cuban american china
 """.split())
 
 # Ordinary lowercase English words (the system dictionary, when present).
@@ -85,6 +87,8 @@ ENGLISH = {w for w in _DICT.read_text().split() if w.islower()} if _DICT.exists(
 
 # Lowercase words that glue a longer name together: "Pizza di Roma".
 CONNECTORS = {"di", "de", "del", "da", "du", "la", "le", "el", "los", "las", "of", "the", "y", "and"}
+# Small words a Title Case name leaves lowercase: "Hole in the Wall".
+SMALL_WORDS = CONNECTORS | {"a", "an", "in", "on", "at", "to", "for", "by", "or", "n"}
 
 # National chains that OpenStreetMap doesn't always tag with a brand.
 CHAINS = [k.split() for k in json.loads((DATA / "chains.json").read_text())] if (DATA / "chains.json").exists() else []
@@ -133,6 +137,7 @@ def log(*args):
 def fetch(url, data=None, delay=1.0, tries=3, agent=USER_AGENT):
     """GET (or POST form data) with polite retries. Returns text or None."""
     body = urllib.parse.urlencode(data).encode() if data else None
+    url = urllib.parse.quote(url, safe=":/?&=%#+@!$',;~")  # non-ASCII paths, e.g. "麻将"
     for attempt in range(tries):
         req = urllib.request.Request(url, data=body, headers={"User-Agent": agent})
         try:
@@ -284,6 +289,7 @@ class NameIndex:
     def __init__(self, places, city_words):
         self.by_name = {}
         generic = GENERIC | city_words
+        self.city_words = city_words
         for place in places:
             for key in self._keys(place["name"]):
                 words = key.split()
@@ -315,7 +321,7 @@ class NameIndex:
             for i in range(len(words) - n + 1):
                 key = " ".join(words[i:i + n])
                 if key in self.by_name and not any(f" {key} " in f" {h} " for h in hits):
-                    ambiguous = all(is_common(w) for w in key.split())
+                    ambiguous = all(is_common(w) or w in self.city_words for w in key.split())
                     if n == 1 or ambiguous:
                         if folded is None:
                             folded = "".join(c for c in unicodedata.normalize("NFKD", text)
@@ -353,17 +359,21 @@ class NameIndex:
                 after = folded[m.end():]
                 if re.match(r"[ \t]+[A-Z][a-z]", after):
                     continue  # head of a longer name: "Champions League"
+                words = found.split()
+                if not all(w[0].isupper() or w[0].isdigit() or w in SMALL_WORDS or w in ("&", "+")
+                           for w in words):
+                    continue  # "Georgia grown produce" isn't "Georgia Grown"
                 if not sentence_start and prev_lower:
                     return True
                 # Multi-word names written fully in Title Case ("Clark's Oyster
-                # Bar", "Joe's Bakery & Coffee Shop") are names wherever they
-                # sit, as long as they aren't the start of something longer.
-                words = found.split()
-                if len(words) > 1 and all(w[0].isupper() or w[0].isdigit() or w.lower() in CONNECTORS
-                                          or w in ("&", "+") for w in words) \
-                        and (sentence_start or prev_lower or before.endswith(",")):
+                # Bar", "Joe's Bakery & Coffee Shop") also count at the start
+                # of a sentence or list, as long as they aren't the start of
+                # something longer.
+                if len(words) > 1 and (sentence_start or prev_lower or before.endswith(",")):
                     return True  # ...nor the end of one: "Madam Mam's Thai Cuisine"
-            elif sentence_start or prev_lower or before.endswith(",") or not found[0].isupper():
+            elif found[0].isupper() and (sentence_start or prev_lower or before.endswith(",")):
+                return True
+            elif not found[0].isupper() and len(found) >= 7:  # "tacodeli", but not "verde"
                 return True
         return False
 
@@ -451,10 +461,12 @@ def from_reddit(city, cravings, comment_threads=3):
 
 def from_feeds(city, max_articles=25):
     """Local food sections and blogs: read the full article, not just the blurb."""
-    for feed_url in city.get("feeds", []):
+    for feed in city.get("feeds", []):
+        # A feed is a URL, or {"url": ..., "name": "Eater Atlanta"} to name the outlet.
+        feed_url = feed["url"] if isinstance(feed, dict) else feed
         items = parse_feed(fetch(feed_url))
-        outlet = urllib.parse.urlparse(feed_url).netloc.replace("www.", "")
-        outlet = {"austin.eater.com": "Eater Austin"}.get(outlet, outlet)
+        outlet = feed.get("name") if isinstance(feed, dict) else None
+        outlet = outlet or urllib.parse.urlparse(feed_url).netloc.replace("www.", "")
         for item in items[:max_articles]:
             page = fetch(item["link"], delay=1.5) if item["link"] else None
             body = strip_html(page) if page else strip_html(item["html"])
@@ -469,7 +481,8 @@ def from_feeds(city, max_articles=25):
 
 def match(places, docs, city):
     """Find who each document talks about. Returns (mentions by place id, scanned counts)."""
-    city_words = set(norm(city["name"] + " " + city.get("news_terms", "")).split())
+    # The city, its state, and nearby place names ("Lawrenceville") are places, not restaurants.
+    city_words = set(norm(" ".join([city["name"], city.get("news_terms", ""), *city.get("place_words", [])])).split())
     index = NameIndex(places, city_words)
     mentions = {}  # place id -> {url: mention}
     scanned = {"press": 0, "blog": 0, "local": 0}
@@ -550,6 +563,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--city", help="slug of one city to refresh")
     parser.add_argument("--quick", action="store_true", help="fewer queries (for testing)")
+    parser.add_argument("--index-only", action="store_true",
+                        help="only rebuild data/cities.json from the city files already there")
     parser.add_argument("--rematch", action="store_true",
                         help="re-run name matching on the last crawl's cached text (no crawling)")
     args = parser.parse_args()
@@ -560,7 +575,7 @@ def main():
         raise SystemExit(f"No city with slug {args.city!r} in {CONFIG}")
 
     (DATA / "cities").mkdir(parents=True, exist_ok=True)
-    for city in targets:
+    for city in [] if args.index_only else targets:
         result = collect(city, quick=args.quick, rematch=args.rematch)
         path = DATA / "cities" / f"{city['slug']}.json"
         path.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")))
