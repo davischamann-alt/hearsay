@@ -7,13 +7,13 @@
    -97.7431
   ],
   "radius_km": 25,
-  "updated": "2026-10-26",
+  "updated": "2026-11-02",
   "scanned": {
-   "press": 1656,
-   "blog": 862,
-   "local": 9539
+   "press": 1374,
+   "blog": 583,
+   "local": 9254
   },
-  "spots": 611
+  "spots": 597
  },
  {
   "slug": "atlanta",
@@ -23,12 +23,12 @@
    -84.388
   ],
   "radius_km": 25,
-  "updated": "2026-10-26",
+  "updated": "2026-11-02",
   "scanned": {
-   "press": 1603,
-   "blog": 924,
-   "local": 1204
+   "press": 1278,
+   "blog": 677,
+   "local": 1294
   },
-  "spots": 335
+  "spots": 331
  }
 ]
