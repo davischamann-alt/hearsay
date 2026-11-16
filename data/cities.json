@@ -23,12 +23,12 @@
    -84.388
   ],
   "radius_km": 25,
-  "updated": "2026-11-09",
+  "updated": "2026-11-16",
   "scanned": {
-   "press": 871,
-   "blog": 411,
-   "local": 1308
+   "press": 840,
+   "blog": 419,
+   "local": 0
   },
-  "spots": 286
+  "spots": 170
  }
 ]
